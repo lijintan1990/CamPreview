@@ -77,11 +77,12 @@ public class GLSurfaceViewActivity extends Activity {
         mglSurfaceView.setRenderer(new GLSurfaceView.Renderer() {
             @Override
             public void onSurfaceCreated(GL10 gl10, EGLConfig eglConfig) {
-                initCamera();
+
             }
 
             @Override
             public void onSurfaceChanged(GL10 gl10, int i, int i1) {
+                initCamera();
                 mDataBuffer = createBuffer(vertexData);
                 vertexShader = loadShader(GL_VERTEX_SHADER, VERTEX_SHADER);
                 fragmentShader = loadShader(GL_FRAGMENT_SHADER, FRAGMENT_SHADER);
@@ -145,8 +146,19 @@ public class GLSurfaceViewActivity extends Activity {
     }
 
     private void initCamera() {
-        mCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
-        mCamera = Camera.open(mCameraId);
+        if (mCamera != null) {
+            try {
+                mCamera.stopPreview();
+
+            } catch (Exception e){
+                // ignore: tried to stop a non-existent preview
+                Log.d(TAG, "Error stopping camera preview: " + e.getMessage());
+            }
+        } else {
+            mCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
+            mCamera = Camera.open(mCameraId);
+        }
+
         Camera.Parameters parameters = mCamera.getParameters();
         parameters.set("orientation", "portrait");
         parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
