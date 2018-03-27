@@ -1,19 +1,30 @@
 package com.example.administrator.campreview;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
-import android.support.v7.app.AppCompatActivity;
+//import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.FrameLayout;
 
-public class CameraActivity extends AppCompatActivity {
+public class CameraActivity extends Activity {
     private static final String TAG = "easyCamera";
     private Camera myCam = null;
+
+    private FrameLayout frameLayout;
+    private CameraPreview cameraPreview;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera_easy);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        myCam = getCameraInstance();
+        cameraPreview = new CameraPreview(this, myCam);
+        frameLayout = findViewById(R.id.frame_view);
+        frameLayout.addView(cameraPreview);
     }
 
     /** Check if this device has a camera */

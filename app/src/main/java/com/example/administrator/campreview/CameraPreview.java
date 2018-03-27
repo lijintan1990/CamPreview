@@ -1,11 +1,14 @@
 package com.example.administrator.campreview;
 
+import android.app.Activity;
 import android.content.Context;
 
 import android.hardware.Camera;
 import android.util.Log;
+import android.view.Surface;
 import android.view.SurfaceView;
 import android.view.SurfaceHolder;
+import android.widget.LinearLayout;
 
 import java.io.IOException;
 import java.util.List;
@@ -21,6 +24,7 @@ import java.util.List;
 public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
     private SurfaceHolder mHolder;
     private Camera mCamera;
+    private Context mContext;
     private static final String TAG = "CameraPreview";
 
     public CameraPreview(Context context, Camera camera) {
@@ -30,8 +34,49 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         // the underlying surface is created and destroyed.
         mHolder = getHolder();
         mHolder.addCallback(this);
+        mContext = context;
         // Deprecated setting, bug required on Android versions prior to 3.0
         mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+    }
+
+    /**
+     * 适配相机旋转
+     *
+     * @param activity
+     * @param cameraId
+     * @param camera
+     */
+    public void setCameraDisplayOrientation(Activity activity, int cameraId, Camera camera) {
+        Camera.CameraInfo info = new Camera.CameraInfo();
+        Camera.getCameraInfo(cameraId, info);
+        int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
+        int degrees = 0;
+        switch (rotation) {
+            case Surface.ROTATION_0:
+                degrees = 0;
+                break;
+            case Surface.ROTATION_90:
+                degrees = 90;
+                break;
+            case Surface.ROTATION_180:
+                degrees = 180;
+                break;
+            case Surface.ROTATION_270:
+                degrees = 270;
+                break;
+        }
+        int result;
+        //前置
+        if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+            result = (info.orientation + degrees) % 360;
+            result = (360 - result) % 360;
+        }
+        //后置
+        else {
+            result = (info.orientation - degrees + 360) % 360;
+        }
+        //orientationDegree = result;
+        camera.setDisplayOrientation(result);
     }
 
     @Override
@@ -67,8 +112,11 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         try {
             mCamera.setPreviewDisplay(mHolder);
             mCamera.startPreview();
+            setCameraDisplayOrientation((Activity)mContext, 0, mCamera);
+            //mCamera.setDisplayOrientation(0);
             Camera.Parameters params = null;
             List<Camera.Size> preivewSizes = params.getSupportedPreviewSizes();
+
             params.setPreviewSize(preivewSizes.get(1).width, preivewSizes.get(1).height);
             Log.d(TAG, "preview size width:"+preivewSizes.get(1).width +
                     " height:"+preivewSizes.get(1).height);
